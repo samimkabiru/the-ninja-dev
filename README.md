@@ -147,19 +147,21 @@ Every foreground/background pair clears WCAG AA (4.5:1).
 
 Works with no configuration: it validates in the browser and, if no mail provider is set up, hands the visitor a pre-filled `mailto:` link instead of failing silently.
 
-To have messages delivered to your inbox, sign up at [resend.com](https://resend.com), verify a sending domain, and set these in `.env.local` (copy `.env.example`):
+Delivery goes through [Formspree](https://formspree.io), which sends the email on your behalf — so there's no domain to own, no API key, and nothing to set in the environment. The endpoint is `contactFormEndpoint` in `src/data/site.ts`; **which address enquiries land at is configured in the Formspree dashboard, not in this repo.** Set it to `null` and the form reverts to the `mailto:` fallback.
 
-```
-RESEND_API_KEY=re_...
-CONTACT_FROM_EMAIL=portfolio@yourdomain.com
-CONTACT_TO_EMAIL=you@yourdomain.com
-```
+That's the one thing most services get wrong for a project like this. Resend, Postmark and the rest will only send *from* a domain you've verified with them, which makes them a non-starter until you own one. Formspree is the sender, so it works from nothing. The trade is volume: the free plan is 50 submissions a month, against Resend's 100 a day.
 
-The route (`src/app/api/contact/route.ts`) validates server-side too, has a honeypot field, and rate-limits to 3 messages per minute per IP. The limiter is in-memory, so it resets on a cold start — fine for a portfolio, but put something like Upstash in front of it if you ever get hammered.
+The request goes out from the route handler (`src/app/api/contact/route.ts`) rather than the browser, which keeps server-side validation, a honeypot field and a 3-per-minute-per-IP rate limit in front of Formspree — bot submissions never reach them, so they never count against the quota. The limiter is in-memory and resets on a cold start; fine for a portfolio, but put something like Upstash in front of it if you ever get hammered.
+
+Two field names are Formspree's conventions rather than arbitrary keys: `email` sets the Reply-To on the notification, so replying goes to the visitor, and `subject` sets the subject line (not `_subject`, which is the older convention). Renaming either quietly loses the behaviour.
+
+If you later buy a domain and want to send from it, that's the point to reach for Resend — verify the domain, then swap the `fetch` in the route.
 
 ## Deploying
 
-Push to GitHub and import the repo at [vercel.com](https://vercel.com) — it detects Next.js with no configuration. Add the environment variables from `.env.example` in the project settings. Any Node host works too: `npm run build && npm start`.
+Push to GitHub and import the repo at [vercel.com](https://vercel.com) — it detects Next.js with no configuration. Any Node host works too: `npm run build && npm start`.
+
+There is nothing you have to configure for the site to work. The only variable worth setting is `NEXT_PUBLIC_SITE_URL` (see `.env.example`), and only so that canonical URLs, Open Graph tags and the sitemap point at the real address rather than the fallback. Give it a value or leave it out entirely — an empty variable just gets you the fallback silently.
 
 ## Notes on the fonts
 

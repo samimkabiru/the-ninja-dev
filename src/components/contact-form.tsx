@@ -60,9 +60,12 @@ export function ContactForm() {
         return;
       }
 
-      // No mail provider wired up yet — hand the visitor a mailto link so the
-      // form is never a dead end.
-      if (response.status === 501) {
+      // Nothing we can do about it on this side — either no mail provider is
+      // wired up (501), or one is but it couldn't be reached or refused the
+      // message (502). Either way the visitor's message is valid and it isn't
+      // their problem to solve, so hand them a pre-filled mailto link rather
+      // than an apology. The real reason is in the server log.
+      if (response.status === 501 || response.status === 502) {
         setStatus("fallback");
         return;
       }
@@ -175,16 +178,20 @@ export function ContactForm() {
           </p>
         ) : null}
 
+        {/* Covers both "no provider configured" and "provider unreachable".
+            The visitor doesn't need to know which — the message they wrote is
+            already in the mailto link either way, so the recovery is the same
+            and naming the cause would only make it sound like their fault. */}
         {status === "fallback" ? (
           <p className="text-sm text-muted">
-            The mail service isn&apos;t configured yet —{" "}
+            Can&apos;t send that from here —{" "}
             <a
               href={mailtoHref}
               className="text-accent underline underline-offset-4"
             >
-              open this in your email app
+              open it in your email app
             </a>{" "}
-            and it&apos;ll be ready to send.
+            instead and it&apos;ll be ready to send.
           </p>
         ) : null}
       </div>

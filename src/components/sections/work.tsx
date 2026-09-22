@@ -43,7 +43,13 @@ export function Work() {
 function FeaturedCard({ project }: { project: Project }) {
   return (
     <article className="group card card-hover relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-      <ProjectThumb project={project} />
+      {/* The featured screenshot is the Largest Contentful Paint on most
+          viewports — it's the biggest thing near the top of the page. Left
+          lazy, the browser only discovers it after the layout settles, which
+          pushes LCP out by a few hundred milliseconds. `priority` preloads it
+          in the document head instead. Only this one gets it: marking every
+          image priority would make them compete and defeat the point. */}
+      <ProjectThumb project={project} priority />
 
       <div>
         <p className="font-mono text-[11px] tracking-wide text-accent">

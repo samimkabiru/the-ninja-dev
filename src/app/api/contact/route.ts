@@ -34,12 +34,27 @@ function asTrimmedString(value: unknown, max: number): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
 
-export async function POST(request: Request) {
-  const apiKey = process.env.RESEND_API_KEY;
+/**
+ * Formspree's dashboard shows the whole endpoint, but it's natural to copy
+ * just the id off the end of it — so accept either and build the URL here.
+ * `.trim()` matters because a value pasted into a hosting dashboard often
+ * arrives with a stray space, and an env var that exists but is blank isn't
+ * nullish, so `??` would let it through into a request to nowhere.
+ */
+function resolveEndpoint(raw: string | undefined): string | null {
+  const value = raw?.trim().replace(/\/+$/, "");
+  if (!value) return null;
+  return /^https?:\/\//i.test(value) ? value : `https://formspree.io/f/${value}`;
+}
 
-  // No mail provider configured — tell the client so it can fall back to
+export async function POST(request: Request) {
+  const endpoint = resolveEndpoint(
+    process.env.FORMSPREE_ENDPOINT ?? siteConfig.contactFormEndpoint ?? undefined,
+  );
+
+  // No form backend configured — tell the client so it can fall back to
   // opening the visitor's email app instead of silently failing.
-  if (!apiKey) {
+  if (!endpoint) {
     return NextResponse.json(
       { error: "not_configured", message: "Email delivery is not set up." },
       { status: 501 },
@@ -89,23 +104,53 @@ export async function POST(request: Request) {
     );
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: process.env.CONTACT_FROM_EMAIL ?? `portfolio@${new URL(siteConfig.url).hostname}`,
-      to: [process.env.CONTACT_TO_EMAIL ?? siteConfig.email],
-      reply_to: email,
-      subject: `Portfolio enquiry from ${name}`,
-      text: `From: ${name} <${email}>\n\n${message}`,
-    }),
-  });
+  // Formspree is the sender, so there's no domain to own and no API key to
+  // keep secret — the endpoint is public by design and spam is handled per
+  // form on their side. Posting from here rather than from the browser keeps
+  // the validation and the honeypot above in front of it, and keeps the form
+  // id out of the page source.
+  //
+  // Two field names are load-bearing: `email` is what Formspree reads to set
+  // the Reply-To on the notification, so hitting reply in Gmail goes to the
+  // visitor rather than to Formspree; `subject` sets the subject line. Both
+  // are their conventions, not arbitrary keys — renaming either quietly
+  // loses the behaviour.
+  let response: Response;
+
+  try {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // Without this Formspree replies with an HTML redirect page meant for a
+        // browser, which would leave us parsing markup to find out what happened.
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        message,
+        subject: `Portfolio enquiry from ${name}`,
+      }),
+      // Don't leave the visitor watching a spinner if Formspree hangs. Node's
+      // default has no timeout at all, so a stalled connection would sit there
+      // until the platform killed the function.
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch (cause) {
+    // DNS failure, no route to the host, TLS problem, timeout. `fetch` throws
+    // on all of these rather than resolving, and an uncaught throw here would
+    // surface as a bare 500 — an HTML error page the client can't read, and
+    // nothing useful for the visitor.
+    console.error("Could not reach Formspree:", cause);
+    return NextResponse.json(
+      { error: "unreachable", message: "Could not reach the mail service." },
+      { status: 502 },
+    );
+  }
 
   if (!response.ok) {
-    console.error("Resend rejected the message:", await response.text());
+    console.error("Formspree rejected the message:", await response.text());
     return NextResponse.json(
       { error: "send_failed", message: "Could not send the message." },
       { status: 502 },

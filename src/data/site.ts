@@ -56,6 +56,19 @@ export const siteConfig = {
   email: "kabirusamimadeiza@gmail.com",
 
   /**
+   * Formspree receives the contact form and emails it to you, which is what
+   * lets the form work without a domain of your own.
+   *
+   * This is deliberately in the repo rather than an environment variable.
+   * It isn't a secret — Formspree endpoints are designed to sit in public
+   * page source, and spam is filtered per form on their side — so keeping it
+   * here means a fresh deploy works with nothing to configure. Set
+   * FORMSPREE_ENDPOINT to override it (a second form for a staging site,
+   * say), or null it out to fall back to the mailto link.
+   */
+  contactFormEndpoint: "https://formspree.io/f/moevdpdj" as string | null,
+
+  /**
    * Rendered as "currently: <this>" in the hero, so write it as a full
    * phrase. TaskFlow is deployed now, so "building it" would contradict the
    * Live status on its case study further down the same page.
