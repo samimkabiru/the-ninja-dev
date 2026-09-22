@@ -5,6 +5,37 @@
  * deploy, or the links will go nowhere.
  */
 
+const FALLBACK_URL = "https://theninjadev.dev";
+
+/**
+ * Turns whatever NEXT_PUBLIC_SITE_URL happens to contain into a valid origin.
+ *
+ * `metadataBase` calls `new URL()` on this at module load, so a bad value
+ * doesn't degrade — it throws before a single page renders and takes the
+ * whole build down. The three ways it goes wrong in practice:
+ *
+ *   ""                    an env var created in the dashboard but left blank.
+ *                         `??` doesn't catch this: an empty string isn't
+ *                         nullish, so it goes straight into new URL("").
+ *   "theninjadev.dev"     pasted without a scheme. Also throws.
+ *   "https://x.dev/"      trailing slash, which doubles up in canonical URLs.
+ *
+ * Anything unparseable falls back rather than failing the build.
+ */
+function resolveSiteUrl(raw: string | undefined): string {
+  const value = raw?.trim();
+  if (!value) return FALLBACK_URL;
+
+  const withScheme = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+
+  try {
+    // .origin drops any path and the trailing slash in one go.
+    return new URL(withScheme).origin;
+  } catch {
+    return FALLBACK_URL;
+  }
+}
+
 export const siteConfig = {
   name: "Samim Kabiru",
   handle: "theNinjaDev",
@@ -19,8 +50,8 @@ export const siteConfig = {
   description:
     "Full-stack developer in Abuja building web applications end to end — React and Next.js on the frontend, Java and Spring Boot on the backend.",
 
-  /** No trailing slash. Override per-environment with NEXT_PUBLIC_SITE_URL. */
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://theninjadev.dev",
+  /** Canonical origin, no trailing slash. Set NEXT_PUBLIC_SITE_URL to override. */
+  url: resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
 
   email: "kabirusamimadeiza@gmail.com",
 
