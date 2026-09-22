@@ -1,0 +1,409 @@
+@import "tailwindcss";
+
+/* Dark mode is driven by a class on <html>, set before paint by the inline
+   script in layout.tsx, so there is no flash of the wrong theme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Design tokens
+
+   Every colour, shadow and surface the site uses is declared once here and
+   consumed through Tailwind utilities (bg-surface, text-muted, shadow-soft…).
+   Changing the accent is a one-line edit.
+
+   Contrast: every foreground/background pair clears WCAG AA (4.5:1) for body
+   text.
+--------------------------------------------------------------------------- */
+
+:root {
+  --bg: #fbfaf9;
+  --surface: #ffffff;
+  --surface-alt: #f5f4f2;
+  --surface-sunken: #f0efec;
+
+  --line: #e9e6e2;
+  --line-strong: #d6d2cc;
+
+  --fg: #1c1917;
+  --muted: #57534e; /* 7.0:1 on --bg */
+  --faint: #78716c; /* 4.9:1 on --bg */
+
+  --accent: #0f6b57; /* 6.4:1 on --bg */
+  --accent-soft: #0f6b57;
+  --accent-contrast: #ffffff;
+
+  --primary: #1c1917;
+  --primary-fg: #ffffff;
+
+  /* Glass: used only on things that float over content, where there is
+     actually something behind them to refract. */
+  --glass: rgb(255 255 255 / 0.72);
+  --glass-strong: rgb(255 255 255 / 0.88);
+  --glass-line: rgb(28 25 23 / 0.07);
+
+  /* Two-layer shadows — a tight contact shadow plus a wide soft one. A single
+     large blur reads as a grey smudge; this reads as lift. */
+  --shadow-sm:
+    0 1px 2px rgb(28 25 23 / 0.04), 0 1px 3px rgb(28 25 23 / 0.04);
+  --shadow-md:
+    0 2px 4px rgb(28 25 23 / 0.04), 0 8px 24px -8px rgb(28 25 23 / 0.1);
+  --shadow-lg:
+    0 4px 8px rgb(28 25 23 / 0.04), 0 24px 48px -16px rgb(28 25 23 / 0.16);
+  --shadow-xl:
+    0 8px 16px rgb(28 25 23 / 0.06), 0 40px 80px -24px rgb(28 25 23 / 0.22);
+
+  /* Hairline that sits on top of a shadow instead of replacing it. */
+  --ring: inset 0 0 0 1px rgb(28 25 23 / 0.06);
+
+  /* Ambient colour behind the page — this is what gives the glass something
+     to blur and keeps large white areas from going flat. */
+  --bloom-a: rgb(15 107 87 / 0.1);
+  --bloom-b: rgb(52 122 160 / 0.07);
+  --bloom-c: rgb(163 105 30 / 0.06);
+
+  --dot-grid: #ddd9d4;
+}
+
+.dark {
+  --bg: #0a0908;
+  --surface: #171614;
+  --surface-alt: #1c1a18;
+  --surface-sunken: #121110;
+
+  --line: #2a2724;
+  --line-strong: #403b36;
+
+  --fg: #f5f5f4;
+  --muted: #d6d3d1; /* 13.2:1 on --bg */
+  --faint: #a8a29e; /* 7.8:1 on --bg */
+
+  --accent: #34d399; /* 10.2:1 on --bg */
+  --accent-soft: #34d399;
+  --accent-contrast: #04261d;
+
+  --primary: #f5f5f4;
+  --primary-fg: #1c1917;
+
+  --glass: rgb(23 22 20 / 0.7);
+  --glass-strong: rgb(23 22 20 / 0.86);
+  --glass-line: rgb(255 255 255 / 0.08);
+
+  /* Shadows do almost nothing on near-black. Dark mode gets its elevation
+     from a lighter surface plus a brighter hairline instead. */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 2px 8px rgb(0 0 0 / 0.45);
+  --shadow-lg: 0 16px 40px -12px rgb(0 0 0 / 0.6);
+  --shadow-xl: 0 32px 64px -16px rgb(0 0 0 / 0.7);
+
+  --ring: inset 0 0 0 1px rgb(255 255 255 / 0.07);
+
+  --bloom-a: rgb(52 211 153 / 0.09);
+  --bloom-b: rgb(56 130 175 / 0.08);
+  --bloom-c: rgb(200 130 40 / 0.05);
+
+  --dot-grid: #2a2724;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-primary: var(--primary);
+  --color-primary-fg: var(--primary-fg);
+  --color-glass: var(--glass);
+
+  --shadow-soft: var(--shadow-sm);
+  --shadow-soft-md: var(--shadow-md);
+  --shadow-soft-lg: var(--shadow-lg);
+  --shadow-soft-xl: var(--shadow-xl);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, "SF Mono", monospace;
+
+  --radius-card: 1rem;
+
+  /* steps(1) so it snaps on and off like a terminal cursor rather than
+     fading. The reduced-motion block below flattens this to a solid bar. */
+  --animate-caret: caret 1.1s steps(1, end) infinite;
+
+  @keyframes caret {
+    0%,
+    50% {
+      opacity: 1;
+    }
+    50.01%,
+    100% {
+      opacity: 0;
+    }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Display type gets optical sizing and tighter tracking — the difference
+     between "a heading" and "typography". */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--accent) 26%, transparent);
+  }
+
+  /* Firefox still needs this for the scroll containers in the overlay. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Surfaces
+
+   `.card` replaces the old border-on-everything pattern: a surface, a
+   hairline drawn as an inset shadow, and real elevation. Roughly forty
+   hairline boxes became forty things that sit at a considered height.
+--------------------------------------------------------------------------- */
+
+@utility card {
+  background-color: var(--surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--ring), var(--shadow-sm);
+  transition:
+    box-shadow 240ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 240ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@utility card-hover {
+  &:hover {
+    box-shadow: var(--ring), var(--shadow-lg);
+    transform: translateY(-3px);
+  }
+}
+
+@utility card-quiet {
+  background-color: var(--surface-alt);
+  border-radius: var(--radius-card);
+  box-shadow: var(--ring);
+}
+
+/* Glass, reserved for elements that float above scrolling content. */
+/* Only the standard property — Tailwind's CSS pipeline adds the -webkit-
+   prefix from the browser targets. Writing both by hand made it drop the
+   unprefixed one, which silently disabled the blur in Chromium. */
+@utility glass {
+  background-color: var(--glass);
+  backdrop-filter: blur(16px) saturate(180%);
+  box-shadow: inset 0 0 0 1px var(--glass-line);
+}
+
+@utility glass-strong {
+  background-color: var(--glass-strong);
+  backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: inset 0 0 0 1px var(--glass-line);
+}
+
+/* Backdrop-filter is expensive and unsupported in a few places; fall back to
+   an opaque surface rather than an unreadable transparent one. */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass,
+  .glass-strong {
+    background-color: var(--surface);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Ambient blooms
+
+   Three very low-opacity radial washes fixed behind the page. They warm the
+   large empty areas and, more importantly, give the glass surfaces something
+   to actually refract — glass over flat white is just a grey box.
+--------------------------------------------------------------------------- */
+
+.bloom-field {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(60rem 40rem at 12% -5%, var(--bloom-a), transparent 60%),
+    radial-gradient(50rem 40rem at 95% 18%, var(--bloom-b), transparent 60%),
+    radial-gradient(55rem 45rem at 50% 105%, var(--bloom-c), transparent 60%);
+}
+
+/* ---------------------------------------------------------------------------
+   Motion
+--------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scroll-reveal starts at opacity 0 and is undone by JavaScript. Without
+   JavaScript there is nothing to undo it, so force it visible. */
+.no-js [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Characters the terminal card hasn't "typed" yet. They stay in the layout so
+   the card never changes size while it types — and without JavaScript there
+   is nothing to reveal them, so they're shown outright. */
+.terminal-pending {
+  visibility: hidden;
+}
+
+.no-js .terminal-pending {
+  visibility: visible;
+}
+
+/* ---------------------------------------------------------------------------
+   Disclosure (FAQ)
+
+   grid-template-rows 0fr → 1fr, so an answer of any length animates open
+   without the clipping a fixed max-height causes.
+--------------------------------------------------------------------------- */
+
+.disclosure {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.disclosure[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+
+.disclosure > * {
+  overflow: hidden;
+}
+
+/* ---------------------------------------------------------------------------
+   Case-study overlay
+
+   A native <dialog>, so focus trapping, Escape-to-close, an inert background
+   and the backdrop all come from the platform. `allow-discrete` lets it
+   animate out as well as in.
+--------------------------------------------------------------------------- */
+
+dialog.overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: transparent;
+  color: var(--fg);
+}
+
+dialog.overlay::backdrop {
+  background-color: rgb(12 10 9 / 0.4);
+  backdrop-filter: blur(8px) saturate(140%);
+  opacity: 0;
+  transition:
+    opacity 320ms ease,
+    overlay 320ms allow-discrete,
+    display 320ms allow-discrete;
+}
+
+dialog.overlay[open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  dialog.overlay[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* The panel animates separately from the dialog so the backdrop can fade
+   while the sheet slides. */
+.overlay-panel {
+  opacity: 0;
+  translate: 0 24px;
+  scale: 0.985;
+  transition:
+    opacity 320ms cubic-bezier(0.32, 0.72, 0, 1),
+    translate 320ms cubic-bezier(0.32, 0.72, 0, 1),
+    scale 320ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+dialog.overlay[open] .overlay-panel {
+  opacity: 1;
+  translate: 0 0;
+  scale: 1;
+}
+
+@starting-style {
+  dialog.overlay[open] .overlay-panel {
+    opacity: 0;
+    translate: 0 24px;
+    scale: 0.985;
+  }
+}
+
+/* On phones it reads better as a sheet rising from the bottom edge. */
+@media (max-width: 640px) {
+  .overlay-panel {
+    translate: 0 100%;
+    scale: 1;
+  }
+
+  @starting-style {
+    dialog.overlay[open] .overlay-panel {
+      translate: 0 100%;
+    }
+  }
+}
