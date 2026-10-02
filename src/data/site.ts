@@ -47,8 +47,13 @@ export const siteConfig = {
   country: "NG",
 
   title: "Samim Kabiru — Full-Stack Developer",
+  /**
+   * Shown in search results and link previews, where roughly the first 155
+   * characters survive — so the availability goes near the front rather than
+   * trailing off the end. Update it alongside `availability` below.
+   */
   description:
-    "Full-stack developer in Abuja building web applications end to end — React and Next.js on the frontend, Java and Spring Boot on the backend.",
+    "Full-stack developer in Abuja, open to full-time remote roles. React and Next.js on the frontend, Java and Spring Boot on the backend.",
 
   /** Canonical origin, no trailing slash. Set NEXT_PUBLIC_SITE_URL to override. */
   url: resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
@@ -73,8 +78,27 @@ export const siteConfig = {
    * phrase. TaskFlow is deployed now, so "building it" would contradict the
    * Live status on its case study further down the same page.
    */
-  currentlyBuilding: "building Ajo — a rotating savings app",
-  availableForWork: true,
+  /**
+   * The second pill in the hero, rendered as "currently: <this>". Set to null
+   * and the pill disappears entirely, which is the right move the moment it
+   * stops being true — a hero saying you're building something you've put
+   * down is worse than saying nothing, because the case study below it is
+   * what a reader checks it against.
+   *
+   * Write it as a full phrase ("building X", "learning Y", "contracting at
+   * Z"), not just a noun.
+   */
+  currentlyBuilding: null as string | null,
+
+  /**
+   * The green badge at the top of the hero. Set to null to hide it.
+   *
+   * Keep it specific. "Available for work" asks the reader to guess what you
+   * want; naming the shape of the role does the filtering for them, and it's
+   * the first line a recruiter reads. Change this the day it stops being
+   * true — a stale availability badge is worse than none.
+   */
+  availability: "open to full-time remote roles" as string | null,
 
   links: {
     github: "https://github.com/samimkabiru",
@@ -103,7 +127,7 @@ export const siteConfig = {
   /** Short proof points under the hero. Keep these true and current. */
   highlights: [
     { value: "2 yrs", label: "building for the web" },
-    { value: "3", label: "projects shipped" },
+    { value: "4", label: "projects shipped" },
     { value: "Remote", label: "worldwide, from Abuja" },
   ],
 } as const;

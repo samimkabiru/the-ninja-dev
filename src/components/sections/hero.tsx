@@ -20,26 +20,37 @@ export function Hero() {
 
       <div className="relative mx-auto grid max-w-5xl items-center gap-12 px-6 pt-14 pb-20 sm:pt-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
         <div>
-          <div className="mb-7 flex flex-wrap gap-2">
-            {siteConfig.availableForWork ? (
+          {/* Both pills are optional, so the row itself has to be — otherwise
+              clearing them leaves 28px of margin above the name with nothing
+              in it, which reads as a layout bug rather than a choice. */}
+          <div
+            className={
+              siteConfig.availability || siteConfig.currentlyBuilding
+                ? "mb-7 flex flex-wrap gap-2"
+                : "hidden"
+            }
+          >
+            {siteConfig.availability ? (
               <p className="glass inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mono text-xs text-muted">
                 <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
                   <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 </span>
-                available for freelance work
+                {siteConfig.availability}
               </p>
             ) : null}
 
             {/* items-baseline, not items-center: this label is long enough to
                 wrap on a phone, and a centred prompt against two lines of text
                 reads as a mistake. */}
-            <p className="glass inline-flex items-baseline gap-2 rounded-full px-3.5 py-1.5 font-mono text-xs text-muted">
-              <span className="text-accent" aria-hidden="true">
-                $
-              </span>
-              currently: {siteConfig.currentlyBuilding}
-            </p>
+            {siteConfig.currentlyBuilding ? (
+              <p className="glass inline-flex items-baseline gap-2 rounded-full px-3.5 py-1.5 font-mono text-xs text-muted">
+                <span className="text-accent" aria-hidden="true">
+                  $
+                </span>
+                currently: {siteConfig.currentlyBuilding}
+              </p>
+            ) : null}
           </div>
 
           <p className="mb-3 font-mono text-sm text-accent">
@@ -68,7 +79,7 @@ export function Hero() {
               href="#contact"
               className="rounded-full px-6 py-3 text-sm font-medium shadow-[var(--ring)] transition-colors hover:bg-surface"
             >
-              Start a project
+              Get in touch
             </a>
 
             {siteConfig.resumePath ? (

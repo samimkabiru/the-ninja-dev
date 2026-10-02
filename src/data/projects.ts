@@ -80,6 +80,58 @@ export type Project = {
 
 export const projects: Project[] = [
   {
+    slug: "ajo",
+    title: "Ajo",
+    blurb:
+      "A digital rotating savings circle for the Nigerian ajo, with a double-entry ledger underneath it.",
+    summary:
+      "Ajo — also called esusu or adashe — is how a great many Nigerians actually save: a group contributes every month, one member collects the whole pot, and it goes round until everyone has had a turn. This is that, as software: circles, rotation schedules, per-member net positions, and a double-entry ledger that has to balance before anything settles. Spring Boot API, Next.js frontend, both deployed.",
+    tags: [
+      "Java",
+      "Spring Boot",
+      "PostgreSQL",
+      "Next.js",
+      "TypeScript",
+      "Tailwind CSS",
+    ],
+    accent: "#4F46E5",
+    liveUrl: "https://ajo-savings-rotation.vercel.app",
+    repos: [
+      { url: "https://github.com/samimkabiru/Ajo-api", label: "API" },
+      { url: "https://github.com/samimkabiru/Ajo-web", label: "Frontend" },
+    ],
+    facts: {
+      role: "Solo build — API, frontend, deployment",
+      timeline: "Personal project",
+      status: "Live — in progress",
+    },
+    problem:
+      "A rotating savings circle runs on trust and, usually, a notebook. The rules look simple until you try to encode them: someone hits an emergency and needs to collect early but still owes every remaining month; someone leaves before their turn and is owed back exactly what they put in; someone leaves after collecting and owes the group the difference; a replacement buys into the vacated position at the leaver's contributed total. Most software flattens all of that into a payment tracker, and the moment the arithmetic disagrees with what the group believes, the group stops using it. So the problem was never the CRUD — it was keeping the books right while matching rules that already work.",
+    approach: [
+      "Gathered the actual rules first, from people who run these circles in person — my mother's group among them — rather than designing from how a savings app usually looks: monthly contribution, one payout per month, as many months as there are members, a fixed end-of-month payout date, and the awkward cases around early collection, leaving and replacement",
+      "Every movement of value posts to a double-entry ledger instead of incrementing a balance, so the books either balance or the operation fails — the app surfaces that state directly, and a circle shows 'Ledger balanced' because it was checked, not because it was assumed",
+      "Idempotency keys and row-level locking on the money paths, so a double tap, a retry or a flaky connection can't record a contribution twice. On the frontend that shows up as a plain promise not to double-charge, which is the version that matters to the person using it",
+      "Rotation schedules generated per circle — month, beneficiary, due date, state — and a net position per member, so the dashboard can say 'the group owes you ₦10,000' rather than making someone reconstruct it from a list of transactions",
+      "Phone number as the login credential, normalised to E.164, with email optional — that's the identifier this audience reliably has, and it's what a circle organiser already uses to invite people",
+      "New members take a late payout position on their first round, which mirrors how real circles manage a newcomer they haven't saved with before. A rule from the field, not a technical constraint",
+      "Spring Boot API on Render against Postgres with Flyway migrations, Next.js frontend on Vercel, with the two halves kept behind an explicit API contract so neither can quietly reach into the other",
+    ],
+    result:
+      "A working circle end to end: create one, invite members by phone, run a round, record contributions, and watch the pot, the rotation order and each member's standing stay consistent — with the ledger as the thing that decides, not a cached total. It is deliberately not finished. The payment provider is stubbed, so the ledger is authoritative but no real money moves through it yet, and SMS verification is waiting on Nigerian business registration that a provider sign-up requires. Both are the next things rather than oversights: the correctness had to be right before anything irreversible was attached to it.",
+    image: {
+      src: "/projects/ajo.jpg",
+      alt: "An Ajo circle's round view: a current pot balance of ₦20,000 against a ₦20,000 target, a panel reading 'the group owes you ₦10,000' with a balanced-ledger note, and the start of the rotation schedule below.",
+      width: 1600,
+      height: 732,
+    },
+    video: {
+      src: "/projects/ajo-tour.mp4",
+      poster: "/projects/ajo-tour.jpg",
+      caption:
+        "A round in an active circle — the pot balance against its target, the member's net standing, then the rotation schedule month by month with each month's beneficiary, down into the cycle detail showing who has paid.",
+    },
+  },
+  {
     slug: "bays-treats",
     title: "Bay's Treats",
     blurb:

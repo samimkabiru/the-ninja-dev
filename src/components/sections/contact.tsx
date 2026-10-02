@@ -9,8 +9,8 @@ export function Contact() {
     <Section
       id="contact"
       label="contact"
-      heading="Let's build something"
-      intro="Have a project in mind, or just want to talk shop? I'm always open to a conversation."
+      heading="Let's talk"
+      intro="I'm looking for a full-time remote role. If you're hiring, or you just want to talk shop, this reaches me directly."
     >
       <Reveal>
         <div className="card grid gap-10 p-6 sm:p-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14">
